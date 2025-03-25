@@ -13,6 +13,7 @@ export const useSheetStore = create(
         rows: 10,
         selectedCell: null,
         changeLog: [],
+        chunks: {},
 
         setColumns: (newColumns) => {
             set({ columns: newColumns });
@@ -22,7 +23,17 @@ export const useSheetStore = create(
             set({ rows: newRows });
         },
 
+        getCellChunkId: (cellId) => {
+            const col = cellId.match(/[A-Z]+/)[0];
+            const row = parseInt(cellId.match(/\d+/)[0]);
+            const chunkSize = 100;
+            const chunkX = Math.floor((col.charCodeAt(0) - 65) / chunkSize);
+            const chunkY = Math.floor((row - 1) / chunkSize);
+            return `${chunkX}-${chunkY}`;
+        },
+
         setCellValue: (cellId, newValue) => {
+            const chunkId = get().getCellChunkId(cellId);
             set((state) => {
                 const prevCellData = state.cells[cellId] || {
                     recentValues: [],
@@ -72,6 +83,16 @@ export const useSheetStore = create(
                     redoStack: [],
                 };
             });
+
+            set((state) => ({
+                chunks: {
+                    ...state.chunks,
+                    [chunkId]: {
+                        ...state.chunks[chunkId],
+                        [cellId]: state.cells[cellId]
+                    }
+                }
+            }));
 
             get().updateDependentCells(cellId);
         },
@@ -237,7 +258,12 @@ export const useSheetStore = create(
         },
 
         saveToIndexedDB: async () => {
-            await db.sheets.put({ sheetId: "main", data: get().cells });
+            const chunks = get().chunks;
+            await Promise.all(
+                Object.entries(chunks).map(([chunkId, data]) =>
+                    db.sheets.put({ sheetId: `chunk-${chunkId}`, data })
+                )
+            );
         },
 
         loadFromIndexedDB: async () => {
