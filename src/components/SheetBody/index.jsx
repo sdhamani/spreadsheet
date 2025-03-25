@@ -24,11 +24,13 @@ const SheetBody = () => {
       <HeaderContainer>
         <HeaderRow>
           <Placeholder />
-          {Array.from({ length: columns }).map((_, index) => (
-            <ColumnHeader key={index}>
-              {String.fromCharCode(65 + index)}
-            </ColumnHeader>
-          ))}
+          {Array.from({ length: useSheetStore.getState().columns }).map(
+            (_, index) => (
+              <ColumnHeader key={index}>
+                {String.fromCharCode(65 + index)}
+              </ColumnHeader>
+            )
+          )}
           <AddRemoveButtonsWrapper>
             <AddRemoveButton onClick={addColumn}>+</AddRemoveButton>
             <AddRemoveButton onClick={removeColumn}>-</AddRemoveButton>

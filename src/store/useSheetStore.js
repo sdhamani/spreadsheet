@@ -109,7 +109,7 @@ export const useSheetStore = create(
                     redoStack: [
                         ...state.redoStack,
                         { cellId: lastChangedCell, redoIndex: cellData.usedIndex },
-                    ], // ✅ Store undone value
+                    ],
                 };
             });
         },
@@ -248,3 +248,4 @@ export const useSheetStore = create(
         },
     }))
 );
+
